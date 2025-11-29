@@ -47,6 +47,7 @@ El valor de `k` se calcula combinando:
 - Factor por servilleta mojada (acelera el proceso).
 
 Todos los valores son aproximados y configurables en `script.js`.
+Además de mostrar el tiempo estimado, la interfaz dibuja la curva T(t) para visualizar cómo baja la temperatura en el tiempo.
 
 ## Temporizador
 
@@ -61,3 +62,4 @@ Todos los valores son aproximados y configurables en `script.js`.
 - Guardar perfiles personalizados y calibrar `k` con datos empíricos.
 - Alternar unidades (°C/°F) y traducir la interfaz (ES/EN).
 - Mejorar accesibilidad (alto contraste, lectura automática del resultado).
+- Añadir más visualizaciones para comparar escenarios.

@@ -30,7 +30,7 @@ body {
 }
 
 .page {
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -218,6 +218,82 @@ input::placeholder {
   margin: 0;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.chart-section {
+  margin-top: 16px;
+}
+
+.chart-card {
+  background: linear-gradient(135deg, rgba(245, 182, 76, 0.18), rgba(255, 250, 241, 0.9));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 180px;
+  position: relative;
+}
+
+.chart-card svg {
+  width: 100%;
+  height: 260px;
+}
+
+.chart-grid line {
+  stroke: rgba(47, 42, 40, 0.12);
+  stroke-width: 1;
+}
+
+.chart-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+.chart-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green-bottle);
+  display: inline-block;
+}
+
+.chart-axis {
+  stroke: #d9cfbd;
+  stroke-width: 1;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--green-bottle);
+  stroke-width: 2.4;
+}
+
+.chart-fill {
+  fill: rgba(60, 93, 66, 0.08);
+}
+
+.chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: #2f2a28;
+  color: #fffaf1;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.1s ease;
 }
 
 .timer-section {

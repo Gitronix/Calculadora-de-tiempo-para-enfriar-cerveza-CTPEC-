@@ -34,7 +34,7 @@
           <label class="field">
             <span class="label">Tamaño / volumen</span>
             <select id="envase-volumen" name="envase-volumen"></select>
-            <input type="number" id="envase-volumen-input" name="envase-volumen-input" step="10" placeholder="Volumen en ml" required>
+            <input type="number" id="envase-volumen-input" name="envase-volumen-input" step="any" placeholder="Volumen en ml" required>
           </label>
 
           <label class="field">
@@ -74,6 +74,18 @@
       <section class="result-section">
         <div id="resultado" class="resultado" aria-live="polite"></div>
         <p class="note">Nota: Estimación aproximada. No reemplaza mediciones reales ni instrumentación de laboratorio.</p>
+      </section>
+
+      <section class="chart-section">
+        <div class="section-head">
+          <div>
+            <h3>Curva de enfriamiento</h3>
+            <p class="muted">Temperatura estimada a lo largo del tiempo.</p>
+          </div>
+        </div>
+        <div id="chart" class="chart-card">
+          <p class="muted">Calcula para ver la curva T(t).</p>
+        </div>
       </section>
 
       <section class="timer-section">

@@ -112,6 +112,137 @@ function calcularTiempo(T0, Ttarget, Tenv, k) {
   };
 }
 
+// Genera puntos T(t) en el intervalo [0, totalSegundos] para graficar.
+function generarSerieTemperatura(T0, Tenv, k, totalSegundos) {
+  if (!totalSegundos || totalSegundos <= 0 || !k) return [];
+  const pasos = Math.max(25, Math.min(180, Math.round(totalSegundos / 5)));
+  const dt = totalSegundos / (pasos - 1);
+  const puntos = [];
+
+  for (let i = 0; i < pasos; i++) {
+    const t = dt * i;
+    const temp = Tenv + (T0 - Tenv) * Math.exp(-k * t);
+    puntos.push({ t, temp });
+  }
+  return puntos;
+}
+
+function renderChart(puntos, datos) {
+  const cont = document.getElementById("chart");
+  if (!puntos.length) {
+    cont.innerHTML = `<p class="muted">Calcula para ver la curva T(t).</p>`;
+    return;
+  }
+
+  const width = 420;
+  const height = 260;
+  const pad = 28;
+  const temps = puntos.map(p => p.temp);
+  const minTemp = Math.min(...temps, datos.Tenv, datos.Ttarget);
+  const maxTemp = Math.max(...temps, datos.T0);
+  const rango = Math.max(1, maxTemp - minTemp);
+
+  const mapX = t => pad + (t / puntos[puntos.length - 1].t) * (width - pad * 2);
+  const mapY = temp => pad + (1 - (temp - minTemp) / rango) * (height - pad * 2);
+
+  const path = puntos.map((p, idx) => `${idx === 0 ? "M" : "L"}${mapX(p.t).toFixed(2)} ${mapY(p.temp).toFixed(2)}`).join(" ");
+  const areaPath = `${puntos.map((p, idx) => `${idx === 0 ? "M" : "L"}${mapX(p.t).toFixed(2)} ${mapY(p.temp).toFixed(2)}`).join(" ")} L${mapX(puntos[puntos.length - 1].t).toFixed(2)} ${height - pad} L${pad} ${height - pad} Z`;
+
+  const gridLines = [];
+  const gridSteps = 5;
+  for (let i = 1; i < gridSteps; i++) {
+    const gx = pad + ((width - pad * 2) / gridSteps) * i;
+    const gy = pad + ((height - pad * 2) / gridSteps) * i;
+    gridLines.push(`<line x1="${gx}" y1="${pad}" x2="${gx}" y2="${height - pad}" />`);
+    gridLines.push(`<line x1="${pad}" y1="${gy}" x2="${width - pad}" y2="${gy}" />`);
+  }
+
+  cont.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Curva de enfriamiento">
+      <g class="chart-grid">
+        ${gridLines.join("")}
+      </g>
+      <g class="ejes">
+        <line class="chart-axis" x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" />
+        <line class="chart-axis" x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" />
+      </g>
+      <path class="chart-fill" d="${areaPath}"></path>
+      <path class="chart-line" d="${path}"></path>
+      <circle cx="${mapX(0).toFixed(2)}" cy="${mapY(puntos[0].temp).toFixed(2)}" r="4" fill="#d18c1d"></circle>
+      <circle cx="${mapX(puntos[puntos.length - 1].t).toFixed(2)}" cy="${mapY(puntos[puntos.length - 1].temp).toFixed(2)}" r="4" fill="#3c5d42"></circle>
+      <text x="${width - pad}" y="${height - pad + 14}" text-anchor="end" fill="#6f645f" font-size="10">Tiempo (s)</text>
+      <text x="${pad - 8}" y="${pad}" text-anchor="end" fill="#6f645f" font-size="10">Temp (°C)</text>
+    </svg>
+    <div class="chart-meta">
+      <span class="chart-legend"><span class="chart-dot"></span> T(t)</span>
+      <span class="muted">Inicio: ${datos.T0} °C · Objetivo: ${datos.Ttarget} °C · Entorno: ${datos.Tenv} °C</span>
+    </div>
+  `;
+
+  // Tooltip interactivo al hacer hover sobre la curva
+  const svg = cont.querySelector("svg");
+  const tooltip = document.createElement("div");
+  tooltip.className = "chart-tooltip";
+  cont.appendChild(tooltip);
+  const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  marker.setAttribute("r", "5");
+  marker.setAttribute("fill", "#d18c1d");
+  marker.setAttribute("stroke", "#2f2a28");
+  marker.setAttribute("stroke-width", "1");
+  svg.appendChild(marker);
+  marker.style.display = "none";
+
+  function nearestPoint(mx) {
+    const tTotal = puntos[puntos.length - 1].t;
+    const tHover = ((mx - pad) / (width - pad * 2)) * tTotal;
+    let nearest = puntos[0];
+    let minDiff = Infinity;
+    for (const p of puntos) {
+      const d = Math.abs(p.t - tHover);
+      if (d < minDiff) {
+        minDiff = d;
+        nearest = p;
+      }
+    }
+    return nearest;
+  }
+
+  const minX = mapX(0);
+  const maxX = mapX(puntos[puntos.length - 1].t);
+
+  function onMove(evt) {
+    const rect = svg.getBoundingClientRect();
+    const scaleX = width / rect.width;
+    const scaleY = height / rect.height;
+    const mx = (evt.clientX - rect.left) * scaleX;
+    const my = (evt.clientY - rect.top) * scaleY;
+    const hitPad = 10;
+    if (mx < minX - hitPad || mx > maxX + hitPad || my < pad - hitPad || my > height - pad + hitPad) {
+      tooltip.style.opacity = 0;
+      marker.style.display = "none";
+      return;
+    }
+    const p = nearestPoint(mx);
+    const vx = mapX(p.t);
+    const vy = mapY(p.temp);
+    tooltip.style.left = `${vx / scaleX}px`;
+    tooltip.style.top = `${vy / scaleY}px`;
+    tooltip.style.opacity = 1;
+    tooltip.textContent = `t=${Math.round(p.t)} s · ${p.temp.toFixed(1)} °C`;
+    marker.style.display = "block";
+    marker.setAttribute("cx", vx.toFixed(2));
+    marker.setAttribute("cy", vy.toFixed(2));
+  }
+
+  function onLeave() {
+    tooltip.style.opacity = 0;
+    marker.style.display = "none";
+  }
+
+  svg.addEventListener("mousemove", onMove);
+  svg.addEventListener("mouseleave", onLeave);
+}
+
 function renderResultado({ minutesRounded, pretty, escenario }) {
   const contenedor = document.getElementById("resultado");
   contenedor.classList.remove("error");
@@ -192,6 +323,10 @@ function manejarSubmit(event) {
 
   // Alimentamos el temporizador con el tiempo calculado (segundos).
   inicializarTimer(Math.round(resultado.tSeconds));
+
+  // Generamos y dibujamos la curva T(t).
+  const serie = generarSerieTemperatura(datos.T0, datos.Tenv, kInfo.k, resultado.tSeconds);
+  renderChart(serie, datos);
 }
 
 function poblarSelectTipoEnvase() {
