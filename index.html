@@ -12,7 +12,7 @@
     <header class="hero">
       <p class="badge">CTPEC</p>
       <h1>Calculadora de tiempo para enfriar cerveza</h1>
-      <p class="lede">Estimación rápida basada en la Ley de Enfriamiento de Newton. Ingresa tus datos y obtén una referencia para saber cuándo tu bebida estará lista.</p>
+      <p class="lede">Estimación aproximada usando la Ley de Enfriamiento de Newton. Ajusta el escenario y obtén un tiempo de referencia.</p>
     </header>
 
     <main class="card">
@@ -20,23 +20,32 @@
         <div class="section-head">
           <div>
             <p class="eyebrow">Parámetros</p>
-            <h2>Completa los datos</h2>
-            <p class="hint">Introduce temperaturas en °C y elige el método de enfriado para ajustar la constante k.</p>
-          </div>
-          <div class="legend">
-            <p class="legend-title">Constantes disponibles</p>
-            <ul>
-              <li>Botella 750 ml + servilleta mojada (freezer): k ≈ 0.00040 s⁻¹</li>
-              <li>Lata 350 ml (freezer): k ≈ 0.00060 s⁻¹</li>
-              <li>Botella 750 ml (heladera): k ≈ 0.00013 s⁻¹</li>
-              <li>Botella 750 ml (balde con hielo): k ≈ 0.00055 s⁻¹</li>
-            </ul>
+            <h2>Define tu escenario</h2>
+            <p class="hint">Selecciona envase, medio y temperaturas. La constante k se calcula con factores aproximados.</p>
           </div>
         </div>
 
         <form id="calc-form" class="grid">
           <label class="field">
-            <span class="label">Temperatura inicial de la cerveza (T₀, °C)</span>
+            <span class="label">Envase</span>
+            <select id="envase" name="envase" required></select>
+          </label>
+
+          <label class="field">
+            <span class="label">Medio de enfriado</span>
+            <select id="medio" name="medio" required></select>
+          </label>
+
+          <label class="field">
+            <span class="label">Servilleta mojada</span>
+            <select id="servilleta" name="servilleta" required>
+              <option value="no" selected>No</option>
+              <option value="si">Sí</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Temperatura inicial (T₀, °C)</span>
             <input type="number" id="temp-inicial" name="temp-inicial" step="0.1" placeholder="Ej: 22" required>
           </label>
 
@@ -45,21 +54,16 @@
             <input type="number" id="temp-objetivo" name="temp-objetivo" step="0.1" placeholder="Ej: 6" required>
           </label>
 
-          <label class="field">
-            <span class="label">Temperatura del entorno (T<sub>env</sub>, °C)</span>
-            <input type="number" id="temp-entorno" name="temp-entorno" step="0.1" placeholder="Ej: -14" required>
-          </label>
-
-          <label class="field">
-            <span class="label">Método de enfriado</span>
-            <select id="metodo" name="metodo" required>
-              <option value="" disabled selected>Selecciona un método</option>
-              <option value="vidrio_freezer_servilleta">Botella vidrio 750 ml – Freezer + servilleta mojada (k ≈ 0.00040 s⁻¹)</option>
-              <option value="lata_freezer">Lata 350 ml – Freezer (k ≈ 0.00060 s⁻¹)</option>
-              <option value="vidrio_heladera">Botella vidrio 750 ml – Heladera (k ≈ 0.00013 s⁻¹)</option>
-              <option value="vidrio_hielo">Botella vidrio 750 ml – Balde con hielo (k ≈ 0.00055 s⁻¹)</option>
-            </select>
-          </label>
+          <div class="field temp-wrap">
+            <div class="label-row">
+              <span class="label">Temperatura del medio (T<sub>env</sub>, °C)</span>
+              <small class="muted">Elige sugerencia o personaliza</small>
+            </div>
+            <div class="temp-controls">
+              <select id="temp-sugerida" name="temp-sugerida"></select>
+              <input type="number" id="temp-entorno" name="temp-entorno" step="0.1" required>
+            </div>
+          </div>
 
           <button type="submit" class="cta">Calcular tiempo</button>
         </form>
@@ -67,7 +71,17 @@
 
       <section class="result-section">
         <div id="resultado" class="resultado" aria-live="polite"></div>
-        <p class="note">Nota: Esta es una estimación aproximada basada en un modelo simplificado. No reemplaza mediciones directas ni instrumentación de laboratorio.</p>
+        <p class="note">Nota: Estimación aproximada. No reemplaza mediciones reales ni instrumentación de laboratorio.</p>
+      </section>
+
+      <section class="tips">
+        <h3>Consejos rápidos</h3>
+        <ul>
+          <li>El balde con agua y hielo suele enfriar más rápido que la heladera.</li>
+          <li>Agregar sal al hielo baja más la temperatura del agua y acelera el proceso.</li>
+          <li>No dejes botellas de vidrio demasiado tiempo en el freezer para evitar roturas.</li>
+          <li>La servilleta mojada ayuda a acelerar el intercambio térmico en el freezer.</li>
+        </ul>
       </section>
     </main>
   </div>

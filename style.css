@@ -1,16 +1,14 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap");
-
 :root {
-  --bg: #0b1021;
-  --card: #111731;
-  --accent: #7dd3fc;
-  --accent-2: #c084fc;
-  --text: #e8ecf6;
-  --muted: #a7b1c9;
-  --surface: #192040;
-  --border: #242c4f;
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-  --radius: 18px;
+  --bg: #f8f1df; /* espuma clara */
+  --card: #fffaf1;
+  --text: #2f2a28;
+  --muted: #6f645f;
+  --amber: #f5b64c; /* tono cerveza */
+  --amber-dark: #d18c1d;
+  --green-bottle: #3c5d42;
+  --border: #eadfcb;
+  --shadow: 0 16px 40px rgba(47, 42, 40, 0.12);
+  --radius: 16px;
 }
 
 *,
@@ -22,9 +20,9 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at 20% 20%, rgba(125, 211, 252, 0.08), transparent 25%),
-              radial-gradient(circle at 80% 0%, rgba(192, 132, 252, 0.12), transparent 28%),
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 20% 20%, rgba(245, 182, 76, 0.15), transparent 35%),
+              radial-gradient(circle at 80% 0%, rgba(60, 93, 66, 0.12), transparent 40%),
               var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -32,35 +30,36 @@ body {
 }
 
 .page {
-  max-width: 960px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
 .hero {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .badge {
   display: inline-block;
   padding: 6px 12px;
   border-radius: 999px;
-  background: linear-gradient(120deg, rgba(125, 211, 252, 0.18), rgba(192, 132, 252, 0.2));
-  color: var(--accent);
+  background: linear-gradient(120deg, rgba(245, 182, 76, 0.25), rgba(60, 93, 66, 0.18));
+  color: var(--green-bottle);
   font-weight: 700;
   letter-spacing: 0.02em;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 h1 {
-  margin: 0 0 10px;
-  font-size: clamp(1.9rem, 3vw, 2.4rem);
+  margin: 0 0 8px;
+  font-size: clamp(1.8rem, 3.5vw, 2.3rem);
   letter-spacing: -0.02em;
+  color: var(--green-bottle);
 }
 
 .lede {
   margin: 0 auto;
-  max-width: 640px;
+  max-width: 620px;
   color: var(--muted);
   font-size: 1rem;
 }
@@ -69,20 +68,19 @@ h1 {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 28px;
+  padding: 24px;
   box-shadow: var(--shadow);
 }
 
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .section-head {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 1.2fr 1fr;
-  align-items: start;
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
 }
 
 .eyebrow {
@@ -90,12 +88,13 @@ h1 {
   letter-spacing: 0.08em;
   font-size: 0.8rem;
   color: var(--muted);
-  margin: 0 0 4px;
+  margin: 0;
 }
 
 h2 {
-  margin: 0 0 6px;
-  font-size: 1.3rem;
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text);
 }
 
 .hint {
@@ -103,30 +102,10 @@ h2 {
   color: var(--muted);
 }
 
-.legend {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.legend-title {
-  margin: 0 0 6px;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.legend ul {
-  margin: 0;
-  padding-left: 18px;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
 .grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   align-items: end;
 }
 
@@ -141,28 +120,47 @@ h2 {
   color: var(--text);
 }
 
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.muted {
+  color: var(--muted);
+}
+
 input,
 select {
   width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: #fffdf8;
   color: var(--text);
   font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus,
 select:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.2);
-  transform: translateY(-1px);
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(245, 182, 76, 0.25);
 }
 
 input::placeholder {
-  color: #7c85a3;
+  color: #9a8f8a;
+}
+
+.temp-wrap {
+  gap: 8px;
+}
+
+.temp-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .cta {
@@ -170,17 +168,18 @@ input::placeholder {
   padding: 14px 16px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(120deg, var(--accent), var(--accent-2));
-  color: #0b1021;
+  background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+  color: #2f1a0d;
   font-weight: 800;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+  box-shadow: 0 10px 30px rgba(209, 140, 29, 0.25);
 }
 
 .cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(125, 211, 252, 0.26);
+  box-shadow: 0 14px 36px rgba(209, 140, 29, 0.3);
 }
 
 .cta:active {
@@ -188,25 +187,26 @@ input::placeholder {
 }
 
 .result-section {
-  background: var(--surface);
+  background: #fffdf8;
   border: 1px dashed var(--border);
   border-radius: 14px;
-  padding: 18px;
+  padding: 16px;
+  margin-top: 12px;
 }
 
 .resultado {
-  min-height: 40px;
+  min-height: 44px;
   color: var(--text);
   font-size: 1.05rem;
   margin-bottom: 8px;
 }
 
 .resultado strong {
-  color: var(--accent);
+  color: var(--green-bottle);
 }
 
 .error {
-  color: #fca5a5;
+  color: #c03a2b;
   font-weight: 700;
 }
 
@@ -216,20 +216,35 @@ input::placeholder {
   font-size: 0.95rem;
 }
 
-@media (max-width: 768px) {
+.tips {
+  margin-top: 20px;
+  background: #fffdf8;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.tips h3 {
+  margin: 0 0 8px;
+  color: var(--green-bottle);
+}
+
+.tips ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
   body {
     padding: 20px 14px 48px;
   }
 
-  .section-head {
+  .grid {
     grid-template-columns: 1fr;
   }
 
-  .legend {
-    order: 2;
-  }
-
-  .grid {
+  .temp-controls {
     grid-template-columns: 1fr;
   }
 }
