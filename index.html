@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CTPEC – Calculadora de tiempo para enfriar cerveza</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <p class="badge">CTPEC</p>
+      <h1>Calculadora de tiempo para enfriar cerveza</h1>
+      <p class="lede">Estimación rápida basada en la Ley de Enfriamiento de Newton. Ingresa tus datos y obtén una referencia para saber cuándo tu bebida estará lista.</p>
+    </header>
+
+    <main class="card">
+      <section class="form-section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Parámetros</p>
+            <h2>Completa los datos</h2>
+            <p class="hint">Introduce temperaturas en °C y elige el método de enfriado para ajustar la constante k.</p>
+          </div>
+          <div class="legend">
+            <p class="legend-title">Constantes disponibles</p>
+            <ul>
+              <li>Botella 750 ml + servilleta mojada (freezer): k ≈ 0.00040 s⁻¹</li>
+              <li>Lata 350 ml (freezer): k ≈ 0.00060 s⁻¹</li>
+              <li>Botella 750 ml (heladera): k ≈ 0.00013 s⁻¹</li>
+              <li>Botella 750 ml (balde con hielo): k ≈ 0.00055 s⁻¹</li>
+            </ul>
+          </div>
+        </div>
+
+        <form id="calc-form" class="grid">
+          <label class="field">
+            <span class="label">Temperatura inicial de la cerveza (T₀, °C)</span>
+            <input type="number" id="temp-inicial" name="temp-inicial" step="0.1" placeholder="Ej: 22" required>
+          </label>
+
+          <label class="field">
+            <span class="label">Temperatura objetivo (T<sub>obj</sub>, °C)</span>
+            <input type="number" id="temp-objetivo" name="temp-objetivo" step="0.1" placeholder="Ej: 6" required>
+          </label>
+
+          <label class="field">
+            <span class="label">Temperatura del entorno (T<sub>env</sub>, °C)</span>
+            <input type="number" id="temp-entorno" name="temp-entorno" step="0.1" placeholder="Ej: -14" required>
+          </label>
+
+          <label class="field">
+            <span class="label">Método de enfriado</span>
+            <select id="metodo" name="metodo" required>
+              <option value="" disabled selected>Selecciona un método</option>
+              <option value="vidrio_freezer_servilleta">Botella vidrio 750 ml – Freezer + servilleta mojada (k ≈ 0.00040 s⁻¹)</option>
+              <option value="lata_freezer">Lata 350 ml – Freezer (k ≈ 0.00060 s⁻¹)</option>
+              <option value="vidrio_heladera">Botella vidrio 750 ml – Heladera (k ≈ 0.00013 s⁻¹)</option>
+              <option value="vidrio_hielo">Botella vidrio 750 ml – Balde con hielo (k ≈ 0.00055 s⁻¹)</option>
+            </select>
+          </label>
+
+          <button type="submit" class="cta">Calcular tiempo</button>
+        </form>
+      </section>
+
+      <section class="result-section">
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+        <p class="note">Nota: Esta es una estimación aproximada basada en un modelo simplificado. No reemplaza mediciones directas ni instrumentación de laboratorio.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
