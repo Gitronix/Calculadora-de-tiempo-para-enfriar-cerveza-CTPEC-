@@ -27,13 +27,14 @@
 
         <form id="calc-form" class="grid">
           <label class="field">
-            <span class="label">Envase</span>
-            <select id="envase" name="envase" required></select>
+            <span class="label">Tipo de envase</span>
+            <select id="envase-tipo" name="envase-tipo" required></select>
           </label>
 
           <label class="field">
-            <span class="label">Medio de enfriado</span>
-            <select id="medio" name="medio" required></select>
+            <span class="label">Tamaño / volumen</span>
+            <select id="envase-volumen" name="envase-volumen"></select>
+            <input type="number" id="envase-volumen-input" name="envase-volumen-input" step="10" placeholder="Volumen en ml" required>
           </label>
 
           <label class="field">
@@ -51,7 +52,8 @@
 
           <label class="field">
             <span class="label">Temperatura objetivo (T<sub>obj</sub>, °C)</span>
-            <input type="number" id="temp-objetivo" name="temp-objetivo" step="0.1" placeholder="Ej: 6" required>
+            <select id="temp-objetivo-preset" name="temp-objetivo-preset"></select>
+            <input type="number" id="temp-objetivo" name="temp-objetivo" step="0.1" required>
           </label>
 
           <div class="field temp-wrap">

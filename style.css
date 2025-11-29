@@ -163,6 +163,10 @@ input::placeholder {
   gap: 8px;
 }
 
+.field select + input {
+  margin-top: 4px;
+}
+
 .cta {
   grid-column: 1 / -1;
   padding: 14px 16px;

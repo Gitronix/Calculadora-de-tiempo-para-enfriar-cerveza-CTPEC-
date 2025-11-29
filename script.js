@@ -1,76 +1,84 @@
 // Bloque de configuración (valores aproximados ajustables en producción).
-const ENVASES = {
-  lata_330: { label: "Lata 330 ml (aluminio)", material: "aluminio", volumenMl: 330 },
-  lata_473: { label: "Lata 473 ml (aluminio)", material: "aluminio", volumenMl: 473 },
-  botella_vidrio_500: { label: "Botella 500 ml (vidrio)", material: "vidrio", volumenMl: 500 },
-  botella_vidrio_750: { label: "Botella 750 ml (vidrio)", material: "vidrio", volumenMl: 750 },
-  botella_pet_1500: { label: "Botella 1.5 L (PET)", material: "pet", volumenMl: 1500 }
+const ENVASE_TIPOS = {
+  lata: { label: "Lata de aluminio", material: "aluminio" },
+  vidrio: { label: "Botella de vidrio", material: "vidrio" },
+  pet: { label: "Botella de plástico / PET", material: "pet" }
 };
 
-const MEDIOS = {
-  freezer: {
-    label: "Freezer",
-    kBase: 0.00055, // valor aproximado para aire muy frío
-    tempsSugeridas: [-14, -16, -18],
-    descripcion: "Freezer doméstico (aire)."
+const ENVASE_VOL_SUGERIDOS = [330, 355, 473, 500, 650, 750, 1000, 1500, 2000];
+
+const ENTORNOS = {
+  freezer_fuerte: {
+    label: "Freezer fuerte (≈ -18 °C)",
+    temp: -18,
+    kBase: 0.0006,
+    descripcion: "Freezer doméstico bien frío."
+  },
+  freezer_suave: {
+    label: "Freezer suave (≈ -14 °C)",
+    temp: -14,
+    kBase: 0.0005,
+    descripcion: "Freezer menos frío o muy lleno."
   },
   heladera: {
-    label: "Heladera",
-    kBase: 0.00018, // valor aproximado para aire frío moderado
-    tempsSugeridas: [3, 4, 5],
+    label: "Heladera (≈ +4 °C)",
+    temp: 4,
+    kBase: 0.00018,
     descripcion: "Heladera doméstica."
   },
   balde_hielo: {
-    label: "Balde con agua y hielo",
-    kBase: 0.0007, // contacto agua+hielo acelera transferencia
-    tempsSugeridas: [0],
-    descripcion: "Balde con agua y hielo en contacto."
+    label: "Balde con agua y hielo (≈ 0 °C)",
+    temp: 0,
+    kBase: 0.0007,
+    descripcion: "Agua en contacto con hielo."
   },
   balde_hielo_sal: {
-    label: "Balde con agua, hielo y sal",
-    kBase: 0.0009, // aún más rápido por depresión del punto de congelación
-    tempsSugeridas: [-4, -6],
-    descripcion: "Balde con hielo + sal (agua salmuera)."
+    label: "Balde con agua, hielo y sal (≈ -5 °C)",
+    temp: -5,
+    kBase: 0.0009,
+    descripcion: "Salmuera que enfría más rápido."
   }
 };
 
+const OBJETIVO_PRESETS = [
+  { label: "Muy fría (2–4 °C)", temp: 3 },
+  { label: "Fría (4–6 °C)", temp: 5 },
+  { label: "Suave (7–10 °C)", temp: 8 }
+];
+
 // Factores de corrección aproximados.
 const FACTORES_MATERIAL = {
-  aluminio: 1.12, // aluminio conduce mejor el calor
-  vidrio: 0.95,   // vidrio es más lento que aluminio
-  pet: 0.8        // PET/plástico es más aislante
+  aluminio: 1.12,
+  vidrio: 0.95,
+  pet: 0.8
 };
 
 const FACTOR_SERVILLETA = {
-  con: 1.1, // con servilleta mojada (evaporación ayuda)
+  con: 1.1,
   sin: 1
 };
 
 function obtenerFactorVolumen(volumenMl) {
-  if (volumenMl <= 350) return 1.08;      // muy pequeño, enfría más rápido
-  if (volumenMl <= 600) return 1;         // referencia
-  if (volumenMl <= 900) return 0.9;       // algo más lento
-  return 0.8;                             // grande (1.5 L), se enfría más lento
+  if (!volumenMl || volumenMl <= 0) return 0;
+  const referencia = 500; // ml
+  const ratio = referencia / volumenMl;
+  // Acotamos para evitar extremos irreales
+  return Math.min(Math.max(ratio, 0.6), 1.2);
 }
 
-function obtenerKFinal(envaseId, medioId, usaServilleta) {
-  const envase = ENVASES[envaseId];
-  const medio = MEDIOS[medioId];
-  if (!envase || !medio) return null;
+function obtenerKFinal(tipoEnvase, volumenMl, entornoId, usaServilleta) {
+  const envase = ENVASE_TIPOS[tipoEnvase];
+  const entorno = ENTORNOS[entornoId];
+  if (!envase || !entorno) return null;
 
-  const kBase = medio.kBase;
+  const kBase = entorno.kBase;
   const factorMaterial = FACTORES_MATERIAL[envase.material] ?? 1;
-  const factorVolumen = obtenerFactorVolumen(envase.volumenMl);
+  const factorVolumen = obtenerFactorVolumen(volumenMl);
   const factorServilleta = usaServilleta ? FACTOR_SERVILLETA.con : FACTOR_SERVILLETA.sin;
 
   return {
     k: kBase * factorMaterial * factorVolumen * factorServilleta,
-    detalle: {
-      kBase,
-      factorMaterial,
-      factorVolumen,
-      factorServilleta
-    }
+    detalle: { kBase, factorMaterial, factorVolumen, factorServilleta }
   };
 }
 
@@ -109,7 +117,7 @@ function renderResultado({ minutesRounded, pretty, escenario }) {
   contenedor.classList.remove("error");
   contenedor.innerHTML = `
     <p><strong>Tiempo estimado:</strong> ${minutesRounded.toFixed(1)} minutos (${pretty}).</p>
-    <p><strong>Escenario:</strong> ${escenario.envase}; medio: ${escenario.medio}; servilleta: ${escenario.servilleta ? "Sí" : "No"}.</p>
+    <p><strong>Escenario:</strong> ${escenario.envase}; Volumen: ${escenario.volumen} ml; Servilleta: ${escenario.servilleta ? "Sí" : "No"}.</p>
     <p>Temperaturas: T₀ = ${escenario.T0} °C, T_obj = ${escenario.Ttarget} °C, T_env = ${escenario.Tenv} °C.</p>
   `;
 }
@@ -124,24 +132,25 @@ function leerInputs() {
   const T0 = parseFloat(document.getElementById("temp-inicial").value);
   const Ttarget = parseFloat(document.getElementById("temp-objetivo").value);
   const Tenv = parseFloat(document.getElementById("temp-entorno").value);
-  const envaseId = document.getElementById("envase").value;
-  const medioId = document.getElementById("medio").value;
+  const tipoEnvase = document.getElementById("envase-tipo").value;
+  const volumenMl = parseFloat(document.getElementById("envase-volumen-input").value);
+  const entornoId = document.getElementById("temp-sugerida").value;
   const usaServilleta = document.getElementById("servilleta").value === "si";
 
-  return { T0, Ttarget, Tenv, envaseId, medioId, usaServilleta };
+  return { T0, Ttarget, Tenv, tipoEnvase, volumenMl, entornoId, usaServilleta };
 }
 
-function validarEntradas({ T0, Ttarget, Tenv, envaseId, medioId }) {
-  if ([T0, Ttarget, Tenv].some(Number.isNaN) || !envaseId || !medioId) {
-    return "Completa todos los valores numéricos y elige envase y medio.";
+function validarEntradas({ T0, Ttarget, Tenv, tipoEnvase, volumenMl, entornoId }) {
+  if ([T0, Ttarget, Tenv, volumenMl].some(Number.isNaN) || !tipoEnvase || !entornoId) {
+    return "Completa todos los valores numéricos y elige tipo de envase y preset de temperatura.";
   }
 
-  if (Ttarget <= Tenv) {
-    return "La temperatura objetivo debe ser mayor que la del medio de enfriado.";
-  }
-
-  if (T0 <= Ttarget) {
+  if (Ttarget >= T0) {
     return "La cerveza ya está a la temperatura objetivo o más fría.";
+  }
+
+  if (Ttarget >= Tenv) {
+    return "La temperatura objetivo debe ser menor que la del medio para que el enfriado tenga sentido.";
   }
 
   return null;
@@ -156,7 +165,7 @@ function manejarSubmit(event) {
     return;
   }
 
-  const kInfo = obtenerKFinal(datos.envaseId, datos.medioId, datos.usaServilleta);
+  const kInfo = obtenerKFinal(datos.tipoEnvase, datos.volumenMl, datos.entornoId, datos.usaServilleta);
   if (!kInfo || !kInfo.k) {
     renderError("No se pudo calcular la constante k para este escenario.");
     return;
@@ -171,8 +180,8 @@ function manejarSubmit(event) {
   renderResultado({
     ...resultado,
     escenario: {
-      envase: ENVASES[datos.envaseId]?.label ?? datos.envaseId,
-      medio: MEDIOS[datos.medioId]?.label ?? datos.medioId,
+      envase: ENVASE_TIPOS[datos.tipoEnvase]?.label ?? datos.tipoEnvase,
+      volumen: datos.volumenMl,
       servilleta: datos.usaServilleta,
       T0: datos.T0,
       Ttarget: datos.Ttarget,
@@ -181,10 +190,10 @@ function manejarSubmit(event) {
   });
 }
 
-function poblarSelectEnvases() {
-  const select = document.getElementById("envase");
-  select.innerHTML = `<option value="" disabled selected>Selecciona un envase</option>`;
-  Object.entries(ENVASES).forEach(([key, { label }]) => {
+function poblarSelectTipoEnvase() {
+  const select = document.getElementById("envase-tipo");
+  select.innerHTML = `<option value="" disabled selected>Selecciona un tipo</option>`;
+  Object.entries(ENVASE_TIPOS).forEach(([key, { label }]) => {
     const option = document.createElement("option");
     option.value = key;
     option.textContent = label;
@@ -192,56 +201,78 @@ function poblarSelectEnvases() {
   });
 }
 
-function poblarSelectMedios() {
-  const select = document.getElementById("medio");
-  select.innerHTML = `<option value="" disabled selected>Selecciona un medio</option>`;
-  Object.entries(MEDIOS).forEach(([key, { label }]) => {
+function poblarSelectVolumen() {
+  const select = document.getElementById("envase-volumen");
+  select.innerHTML = `<option value="" disabled selected>Selecciona volumen</option>`;
+  ENVASE_VOL_SUGERIDOS.forEach((vol, idx) => {
     const option = document.createElement("option");
-    option.value = key;
-    option.textContent = label;
+    option.value = vol;
+    option.textContent = `${vol} ml`;
+    if (idx === 1) option.selected = true;
     select.appendChild(option);
   });
 }
 
-function actualizarSugerenciasTemp(medioId) {
+function poblarSelectEntorno() {
   const select = document.getElementById("temp-sugerida");
-  const input = document.getElementById("temp-entorno");
-  select.innerHTML = "";
+  select.innerHTML = `<option value="" disabled selected>Selecciona un preset</option>`;
+  Object.entries(ENTORNOS).forEach(([key, { label, temp }]) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = `${label} (${temp} °C)`;
+    select.appendChild(option);
+  });
+}
 
-  const medio = MEDIOS[medioId];
-  if (!medio) {
-    input.value = "";
-    return;
-  }
-
-  medio.tempsSugeridas.forEach((temp, idx) => {
+function poblarSelectObjetivo() {
+  const select = document.getElementById("temp-objetivo-preset");
+  select.innerHTML = `<option value="" disabled selected>Selecciona un preset</option>`;
+  OBJETIVO_PRESETS.forEach(({ label, temp }, idx) => {
     const option = document.createElement("option");
     option.value = temp;
-    option.textContent = `${temp} °C`;
-    if (idx === 0) option.selected = true;
+    option.textContent = `${label} (${temp} °C)`;
+    if (idx === 1) option.selected = true;
     select.appendChild(option);
   });
-
-  // Pre-carga el input con la primera sugerencia.
-  input.value = medio.tempsSugeridas[0];
 }
 
-function manejarCambioMedio() {
-  const medioId = document.getElementById("medio").value;
-  actualizarSugerenciasTemp(medioId);
+function manejarCambioVolumen() {
+  const selectVal = document.getElementById("envase-volumen").value;
+  if (selectVal) {
+    document.getElementById("envase-volumen-input").value = selectVal;
+  }
 }
 
-function manejarCambioTempSugerida() {
-  const selected = document.getElementById("temp-sugerida").value;
+function manejarCambioEntorno() {
+  const entornoId = document.getElementById("temp-sugerida").value;
   const input = document.getElementById("temp-entorno");
-  if (selected !== "") input.value = selected;
+  if (entornoId && ENTORNOS[entornoId]) {
+    input.value = ENTORNOS[entornoId].temp;
+  }
+}
+
+function manejarCambioObjetivo() {
+  const val = document.getElementById("temp-objetivo-preset").value;
+  if (val !== "") {
+    document.getElementById("temp-objetivo").value = val;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  poblarSelectEnvases();
-  poblarSelectMedios();
-  document.getElementById("medio").addEventListener("change", manejarCambioMedio);
-  document.getElementById("temp-sugerida").addEventListener("change", manejarCambioTempSugerida);
+  poblarSelectTipoEnvase();
+  poblarSelectVolumen();
+  poblarSelectEntorno();
+  poblarSelectObjetivo();
+
+  document.getElementById("envase-volumen").addEventListener("change", manejarCambioVolumen);
+  document.getElementById("temp-sugerida").addEventListener("change", manejarCambioEntorno);
+  document.getElementById("temp-objetivo-preset").addEventListener("change", manejarCambioObjetivo);
+
+  // Inicializar valores por defecto
+  manejarCambioVolumen();
+  document.getElementById("temp-sugerida").selectedIndex = 1;
+  manejarCambioEntorno();
+  manejarCambioObjetivo();
 
   const form = document.getElementById("calc-form");
   form.addEventListener("submit", manejarSubmit);
