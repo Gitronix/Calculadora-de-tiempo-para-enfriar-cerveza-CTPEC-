@@ -149,8 +149,9 @@ function validarEntradas({ T0, Ttarget, Tenv, tipoEnvase, volumenMl, entornoId }
     return "La cerveza ya está a la temperatura objetivo o más fría.";
   }
 
-  if (Ttarget >= Tenv) {
-    return "La temperatura objetivo debe ser menor que la del medio para que el enfriado tenga sentido.";
+  // Para enfriar, el entorno debe ser más frío que la temperatura objetivo.
+  if (Ttarget <= Tenv) {
+    return "La temperatura objetivo debe ser mayor que la del medio para que el enfriado tenga sentido.";
   }
 
   return null;
@@ -188,6 +189,9 @@ function manejarSubmit(event) {
       Tenv: datos.Tenv
     }
   });
+
+  // Alimentamos el temporizador con el tiempo calculado (segundos).
+  inicializarTimer(Math.round(resultado.tSeconds));
 }
 
 function poblarSelectTipoEnvase() {
@@ -258,6 +262,113 @@ function manejarCambioObjetivo() {
   }
 }
 
+// --- Temporizador ---
+let timerInterval = null;
+let timerInicialSeg = 0;
+let timerRestanteSeg = 0;
+
+function formatearSegundos(seg) {
+  const s = Math.max(0, Math.round(seg));
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+}
+
+function actualizarDisplayTimer() {
+  document.getElementById("timer-display").textContent = formatearSegundos(timerRestanteSeg);
+}
+
+function inicializarTimer(segundos) {
+  // Tiempo inicial proviene del cálculo pero se puede ajustar manualmente.
+  timerInicialSeg = Math.max(0, segundos);
+  timerRestanteSeg = timerInicialSeg;
+  document.getElementById("timer-minutos").value = (timerInicialSeg / 60).toFixed(1);
+  actualizarDisplayTimer();
+}
+
+function tomarValorTimerEditable() {
+  const minutos = parseFloat(document.getElementById("timer-minutos").value);
+  if (!Number.isFinite(minutos) || minutos < 0) return null;
+  return Math.round(minutos * 60);
+}
+
+function reproducirSonido(id) {
+  // Reproducimos audio si existe (destape/glup); si no existe el archivo, no rompe.
+  try {
+    const audio = document.getElementById(id);
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
+  } catch (e) {
+    // Silenciosamente ignoramos.
+  }
+}
+
+function finalizarTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerRestanteSeg = 0;
+  actualizarDisplayTimer();
+  reproducirSonido("audio-destape");
+  setTimeout(() => reproducirSonido("audio-glup"), 600);
+  renderMensajeTimer("¡Tu cerveza debería estar lista para tomar!");
+}
+
+function renderMensajeTimer(msg) {
+  const cont = document.getElementById("resultado");
+  cont.insertAdjacentHTML("beforeend", `<p>${msg}</p>`);
+}
+
+function iniciarTimer() {
+  const editableSeg = tomarValorTimerEditable();
+  if (editableSeg !== null) {
+    timerInicialSeg = editableSeg;
+    timerRestanteSeg = editableSeg;
+  }
+  if (timerRestanteSeg <= 0) {
+    renderError("Configura un tiempo mayor a 0 para iniciar el temporizador.");
+    return;
+  }
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerRestanteSeg -= 1;
+    if (timerRestanteSeg <= 0) {
+      finalizarTimer();
+    } else {
+      actualizarDisplayTimer();
+    }
+  }, 1000);
+  actualizarDisplayTimer();
+}
+
+function pausarTimer() {
+  if (!timerInterval) return;
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function reanudarTimer() {
+  if (timerInterval || timerRestanteSeg <= 0) return;
+  iniciarTimer();
+}
+
+function reiniciarTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerRestanteSeg = timerInicialSeg;
+  actualizarDisplayTimer();
+}
+
+function toggleExplicacion() {
+  const contenido = document.getElementById("explicacion-contenido");
+  contenido.classList.toggle("mostrar");
+  const btn = document.getElementById("toggle-explicacion");
+  const abierto = contenido.classList.contains("mostrar");
+  btn.textContent = abierto ? "Ocultar explicación" : "¿Cómo se hace el cálculo?";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   poblarSelectTipoEnvase();
   poblarSelectVolumen();
@@ -267,12 +378,38 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("envase-volumen").addEventListener("change", manejarCambioVolumen);
   document.getElementById("temp-sugerida").addEventListener("change", manejarCambioEntorno);
   document.getElementById("temp-objetivo-preset").addEventListener("change", manejarCambioObjetivo);
+  document.getElementById("toggle-explicacion").addEventListener("click", toggleExplicacion);
+  document.getElementById("timer-start").addEventListener("click", () => {
+    iniciarTimer();
+    document.getElementById("timer-pause").textContent = "Pausar";
+  });
+  document.getElementById("timer-pause").addEventListener("click", () => {
+    if (timerInterval) {
+      pausarTimer();
+      document.getElementById("timer-pause").textContent = "Reanudar";
+    } else {
+      reanudarTimer();
+      document.getElementById("timer-pause").textContent = "Pausar";
+    }
+  });
+  document.getElementById("timer-reset").addEventListener("click", reiniciarTimer);
 
   // Inicializar valores por defecto
   manejarCambioVolumen();
   document.getElementById("temp-sugerida").selectedIndex = 1;
   manejarCambioEntorno();
   manejarCambioObjetivo();
+
+  // Inicializamos timer en cero hasta que haya cálculo.
+  inicializarTimer(0);
+
+  // Audio opcional; si los archivos no están presentes, la app sigue funcionando.
+  const audiosContainer = document.createElement("div");
+  audiosContainer.innerHTML = `
+    <audio id="audio-destape" src="destape.mp3" preload="auto"></audio>
+    <audio id="audio-glup" src="glup.mp3" preload="auto"></audio>
+  `;
+  document.body.appendChild(audiosContainer);
 
   const form = document.getElementById("calc-form");
   form.addEventListener("submit", manejarSubmit);

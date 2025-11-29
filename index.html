@@ -76,6 +76,26 @@
         <p class="note">Nota: Estimación aproximada. No reemplaza mediciones reales ni instrumentación de laboratorio.</p>
       </section>
 
+      <section class="timer-section">
+        <div class="timer-head">
+          <h3>Temporizador</h3>
+          <p class="muted">El tiempo inicial se toma del cálculo, pero puedes ajustarlo antes de iniciar.</p>
+        </div>
+        <div class="timer-display" id="timer-display">00:00</div>
+        <div class="timer-controls">
+          <button type="button" class="btn ghost" id="timer-reset">Reiniciar</button>
+          <button type="button" class="btn primary" id="timer-start">Iniciar</button>
+          <button type="button" class="btn secondary" id="timer-pause">Pausar</button>
+        </div>
+        <div class="timer-input-wrap">
+          <label class="field">
+            <span class="label">Ajustar tiempo (minutos)</span>
+            <input type="number" id="timer-minutos" min="0" step="0.1" value="0">
+          </label>
+        </div>
+        <p class="note">Si agregas los archivos de audio <code>destape.mp3</code> y <code>glup.mp3</code> en la carpeta del proyecto, sonarán al finalizar.</p>
+      </section>
+
       <section class="tips">
         <h3>Consejos rápidos</h3>
         <ul>
@@ -84,6 +104,24 @@
           <li>No dejes botellas de vidrio demasiado tiempo en el freezer para evitar roturas.</li>
           <li>La servilleta mojada ayuda a acelerar el intercambio térmico en el freezer.</li>
         </ul>
+      </section>
+
+      <section class="explicacion">
+        <button class="toggle" type="button" id="toggle-explicacion">¿Cómo se hace el cálculo?</button>
+        <div class="explicacion-contenido" id="explicacion-contenido">
+          <p>Usamos la Ley de Enfriamiento de Newton, que modela cómo un objeto cambia su temperatura respecto al entorno.</p>
+          <p><strong>Variables:</strong></p>
+          <ul>
+            <li><strong>T₀</strong>: temperatura inicial de la cerveza.</li>
+            <li><strong>T_env</strong>: temperatura del entorno (freezer, heladera, balde, etc.).</li>
+            <li><strong>T_obj</strong>: temperatura objetivo para tomar.</li>
+            <li><strong>k</strong>: constante que depende del envase, volumen, entorno y si hay servilleta mojada.</li>
+            <li><strong>t</strong>: tiempo estimado para enfriar.</li>
+          </ul>
+          <p><strong>Fórmulas:</strong></p>
+          <p>T(t) = T_env + (T₀ − T_env) · e^(−k · t)</p>
+          <p>Despejando el tiempo: t = (1 / k) · ln((T₀ − T_env) / (T_obj − T_env))</p>
+        </div>
       </section>
     </main>
   </div>

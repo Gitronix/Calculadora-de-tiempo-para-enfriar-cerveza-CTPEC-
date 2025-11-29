@@ -33,6 +33,28 @@ Los valores de `k` y factores son aproximados y están definidos en un bloque de
 
 > Los resultados son aproximados; no reemplazan mediciones reales ni instrumentación de laboratorio.
 
+## Cómo funciona el cálculo
+
+Se usa un modelo exponencial basado en la Ley de Enfriamiento de Newton:
+
+`T(t) = T_env + (T0 − T_env) * e^(−k * t)`  
+Despejando el tiempo: `t = (1 / k) * ln((T0 − T_env) / (T_obj − T_env))`
+
+El valor de `k` se calcula combinando:
+- `k_base` del entorno (freezer, heladera, balde con agua/hielo, etc.).
+- Factor por material del envase (aluminio, vidrio, PET).
+- Factor por volumen (referencia 500 ml; más grande enfría más lento).
+- Factor por servilleta mojada (acelera el proceso).
+
+Todos los valores son aproximados y configurables en `script.js`.
+
+## Temporizador
+
+- Tras calcular el tiempo, el temporizador se rellena con ese valor (puedes ajustarlo antes de iniciar).
+- Controles: Iniciar, Pausar/Reanudar y Reiniciar al valor inicial.
+- El tiempo se muestra en formato `mm:ss` y puedes editarlo en minutos manualmente.
+- Al finalizar, si agregas los archivos `destape.mp3` y `glup.mp3` en la carpeta del proyecto, sonará un destape y luego un “glup glup glup”.
+
 ## Futuras mejoras
 
 - Graficar la curva de enfriamiento y mostrar progreso estimado.
