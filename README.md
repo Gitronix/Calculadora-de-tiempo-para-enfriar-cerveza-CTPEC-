@@ -1,5 +1,8 @@
 # CTPEC – Calculadora de Tiempo para Enfriar Cerveza
 
+Puedes visitar la web en
+https://gitronix.github.io/Calculadora-de-tiempo-para-enfriar-cerveza-CTPEC-/
+
 Aplicación web en HTML, CSS y JavaScript puro que estima cuánto tarda en enfriarse una cerveza usando la Ley de Enfriamiento de Newton.
 
 ## Modelo
@@ -49,12 +52,16 @@ El valor de `k` se calcula combinando:
 Todos los valores son aproximados y configurables en `script.js`.
 Además de mostrar el tiempo estimado, la interfaz dibuja la curva T(t) para visualizar cómo baja la temperatura en el tiempo.
 
+## Unidades y Easter Egg
+
+- Puedes alternar entre °C, °F y K; los valores visibles y los presets se convierten al cambiar.
+- Si ingresas temperaturas iguales o inferiores al cero absoluto (-273,15 °C), verás un mensaje oculto de “¿Querés la cerveza más fría del universo?”.
+
 ## Temporizador
 
 - Tras calcular el tiempo, el temporizador se rellena con ese valor (puedes ajustarlo antes de iniciar).
 - Controles: Iniciar, Pausar/Reanudar y Reiniciar al valor inicial.
 - El tiempo se muestra en formato `mm:ss` y puedes editarlo en minutos manualmente.
-- Al finalizar, si agregas los archivos `destape.mp3` y `glup.mp3` en la carpeta del proyecto, sonará un destape y luego un “glup glup glup”.
 
 ## Futuras mejoras
 

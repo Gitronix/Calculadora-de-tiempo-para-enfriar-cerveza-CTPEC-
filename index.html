@@ -26,6 +26,15 @@
         </div>
 
         <form id="calc-form" class="grid">
+          <div class="field units-field">
+            <span class="label">Unidades</span>
+            <div class="unit-toggle" role="group" aria-label="Selecciona unidades">
+              <label><input type="radio" name="unidad" value="c" checked> °C</label>
+              <label><input type="radio" name="unidad" value="f"> °F</label>
+              <label><input type="radio" name="unidad" value="k"> K</label>
+            </div>
+          </div>
+
           <label class="field">
             <span class="label">Tipo de envase</span>
             <select id="envase-tipo" name="envase-tipo" required></select>
@@ -43,6 +52,7 @@
               <option value="no" selected>No</option>
               <option value="si">Sí</option>
             </select>
+            <p class="servilleta-note muted" id="servilleta-note"></p>
           </label>
 
           <label class="field">
@@ -105,7 +115,6 @@
             <input type="number" id="timer-minutos" min="0" step="0.1" value="0">
           </label>
         </div>
-        <p class="note">Si agregas los archivos de audio <code>destape.mp3</code> y <code>glup.mp3</code> en la carpeta del proyecto, sonarán al finalizar.</p>
       </section>
 
       <section class="tips">
