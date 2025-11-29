@@ -52,6 +52,11 @@ El valor de `k` se calcula combinando:
 Todos los valores son aproximados y configurables en `script.js`.
 Además de mostrar el tiempo estimado, la interfaz dibuja la curva T(t) para visualizar cómo baja la temperatura en el tiempo.
 
+## Unidades y Easter Egg
+
+- Puedes alternar entre °C, °F y K; los valores visibles y los presets se convierten al cambiar.
+- Si ingresas temperaturas iguales o inferiores al cero absoluto (-273,15 °C), verás un mensaje oculto de “¿Querés la cerveza más fría del universo?”.
+
 ## Temporizador
 
 - Tras calcular el tiempo, el temporizador se rellena con ese valor (puedes ajustarlo antes de iniciar).

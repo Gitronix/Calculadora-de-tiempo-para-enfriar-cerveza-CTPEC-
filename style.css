@@ -115,6 +115,28 @@ h2 {
   gap: 6px;
 }
 
+.units-field .unit-toggle {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fffdf8;
+}
+
+.units-field label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.units-field input[type="radio"] {
+  accent-color: var(--green-bottle);
+}
+
 .label {
   font-weight: 600;
   color: var(--text);
@@ -214,6 +236,11 @@ input::placeholder {
 
 .resultado strong {
   color: var(--green-bottle);
+}
+
+.easter {
+  color: #d18c1d;
+  font-weight: 800;
 }
 
 .error {

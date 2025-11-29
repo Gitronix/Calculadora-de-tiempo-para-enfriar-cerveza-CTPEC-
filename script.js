@@ -58,6 +58,9 @@ const FACTOR_SERVILLETA = {
   sin: 1
 };
 
+const ZERO_ABSOLUTO_C = -273.15;
+let currentUnit = "c";
+
 function obtenerFactorVolumen(volumenMl) {
   if (!volumenMl || volumenMl <= 0) return 0;
   const referencia = 500; // ml
@@ -243,11 +246,12 @@ function renderChart(puntos, datos) {
   svg.addEventListener("mouseleave", onLeave);
 }
 
-function renderResultado({ minutesRounded, pretty, escenario }) {
+function renderResultado({ minutesRounded, pretty, escenario, infinito }) {
   const contenedor = document.getElementById("resultado");
   contenedor.classList.remove("error");
+  const tiempoTexto = infinito ? "Infinito" : `${minutesRounded.toFixed(1)} minutos (${pretty})`;
   contenedor.innerHTML = `
-    <p><strong>Tiempo estimado:</strong> ${minutesRounded.toFixed(1)} minutos (${pretty}).</p>
+    <p><strong>Tiempo estimado:</strong> ${tiempoTexto}.</p>
     <p><strong>Escenario:</strong> ${escenario.envase}; Volumen: ${escenario.volumen} ml; Servilleta: ${escenario.servilleta ? "Sí" : "No"}.</p>
     <p>Temperaturas: T₀ = ${escenario.T0} °C, T_obj = ${escenario.Ttarget} °C, T_env = ${escenario.Tenv} °C.</p>
   `;
@@ -263,12 +267,44 @@ function leerInputs() {
   const T0 = parseFloat(document.getElementById("temp-inicial").value);
   const Ttarget = parseFloat(document.getElementById("temp-objetivo").value);
   const Tenv = parseFloat(document.getElementById("temp-entorno").value);
+  const unidad = document.querySelector('input[name="unidad"]:checked')?.value || "c";
   const tipoEnvase = document.getElementById("envase-tipo").value;
   const volumenMl = parseFloat(document.getElementById("envase-volumen-input").value);
   const entornoId = document.getElementById("temp-sugerida").value;
   const usaServilleta = document.getElementById("servilleta").value === "si";
 
-  return { T0, Ttarget, Tenv, tipoEnvase, volumenMl, entornoId, usaServilleta };
+  const temps = { T0, Ttarget, Tenv };
+  const tempsC = convertirA_C(temps, unidad);
+
+  return { ...tempsC, unidad, tipoEnvase, volumenMl, entornoId, usaServilleta, rawTemps: temps };
+}
+
+function convertirA_C({ T0, Ttarget, Tenv }, unidad) {
+  if (unidad === "f") {
+    return {
+      T0: (T0 - 32) * (5 / 9),
+      Ttarget: (Ttarget - 32) * (5 / 9),
+      Tenv: (Tenv - 32) * (5 / 9)
+    };
+  }
+  if (unidad === "k") {
+    return {
+      T0: T0 - 273.15,
+      Ttarget: Ttarget - 273.15,
+      Tenv: Tenv - 273.15
+    };
+  }
+  return {
+    T0,
+    Ttarget,
+    Tenv
+  };
+}
+
+function convertirDesdeC(valorC, unidad) {
+  if (unidad === "f") return valorC * 9 / 5 + 32;
+  if (unidad === "k") return valorC + 273.15;
+  return valorC;
 }
 
 function validarEntradas({ T0, Ttarget, Tenv, tipoEnvase, volumenMl, entornoId }) {
@@ -318,7 +354,8 @@ function manejarSubmit(event) {
       T0: datos.T0,
       Ttarget: datos.Ttarget,
       Tenv: datos.Tenv
-    }
+    },
+    infinito: datos.Ttarget <= ZERO_ABSOLUTO_C || datos.Tenv <= ZERO_ABSOLUTO_C
   });
 
   // Alimentamos el temporizador con el tiempo calculado (segundos).
@@ -327,6 +364,8 @@ function manejarSubmit(event) {
   // Generamos y dibujamos la curva T(t).
   const serie = generarSerieTemperatura(datos.T0, datos.Tenv, kInfo.k, resultado.tSeconds);
   renderChart(serie, datos);
+
+  mostrarEasterEgg(datos.Ttarget, datos.Tenv);
 }
 
 function poblarSelectTipoEnvase() {
@@ -354,25 +393,36 @@ function poblarSelectVolumen() {
 
 function poblarSelectEntorno() {
   const select = document.getElementById("temp-sugerida");
+  const seleccionAnterior = select.value;
   select.innerHTML = `<option value="" disabled selected>Selecciona un preset</option>`;
   Object.entries(ENTORNOS).forEach(([key, { label, temp }]) => {
     const option = document.createElement("option");
     option.value = key;
-    option.textContent = `${label} (${temp} °C)`;
+    option.dataset.tempC = temp;
+    const tempConv = convertirDesdeC(temp, currentUnit);
+    option.textContent = `${label} (${Math.round(tempConv * 10) / 10} °${currentUnit.toUpperCase()})`;
     select.appendChild(option);
   });
+  if (seleccionAnterior) select.value = seleccionAnterior;
+  if (!select.value) select.selectedIndex = 1;
 }
 
 function poblarSelectObjetivo() {
   const select = document.getElementById("temp-objetivo-preset");
+  const selectedIdx = select.selectedIndex;
   select.innerHTML = `<option value="" disabled selected>Selecciona un preset</option>`;
   OBJETIVO_PRESETS.forEach(({ label, temp }, idx) => {
     const option = document.createElement("option");
-    option.value = temp;
-    option.textContent = `${label} (${temp} °C)`;
+    option.dataset.tempC = temp;
+    const tempConv = convertirDesdeC(temp, currentUnit);
+    option.value = tempConv;
+    option.textContent = `${label} (${Math.round(tempConv * 10) / 10} °${currentUnit.toUpperCase()})`;
     if (idx === 1) option.selected = true;
     select.appendChild(option);
   });
+  if (selectedIdx >= 0 && selectedIdx < select.options.length) {
+    select.selectedIndex = selectedIdx;
+  }
 }
 
 function manejarCambioVolumen() {
@@ -386,7 +436,8 @@ function manejarCambioEntorno() {
   const entornoId = document.getElementById("temp-sugerida").value;
   const input = document.getElementById("temp-entorno");
   if (entornoId && ENTORNOS[entornoId]) {
-    input.value = ENTORNOS[entornoId].temp;
+    const tC = ENTORNOS[entornoId].temp;
+    input.value = Math.round(convertirDesdeC(tC, currentUnit) * 10) / 10;
   }
   actualizarServilletaDisponibilidad(entornoId);
 }
@@ -396,6 +447,31 @@ function manejarCambioObjetivo() {
   if (val !== "") {
     document.getElementById("temp-objetivo").value = val;
   }
+}
+
+function manejarCambioUnidad() {
+  const nueva = document.querySelector('input[name="unidad"]:checked')?.value || "c";
+  const anterior = currentUnit;
+  currentUnit = nueva;
+  // Convertimos valores visibles para mantener coherencia al cambiar de unidad
+  const campos = [
+    { id: "temp-inicial" },
+    { id: "temp-objetivo" },
+    { id: "temp-entorno" }
+  ];
+  campos.forEach(({ id }) => {
+    const input = document.getElementById(id);
+    const val = parseFloat(input.value);
+    if (Number.isFinite(val)) {
+      const valC = convertirA_C({ T0: val, Ttarget: val, Tenv: val }, anterior).T0;
+      const convertido = convertirDesdeC(valC, nueva);
+      input.value = Math.round(convertido * 10) / 10;
+    }
+  });
+  poblarSelectEntorno();
+  poblarSelectObjetivo();
+  manejarCambioEntorno();
+  manejarCambioObjetivo();
 }
 
 function actualizarServilletaDisponibilidad(entornoId) {
@@ -521,6 +597,24 @@ function toggleExplicacion() {
   btn.textContent = abierto ? "Ocultar explicación" : "¿Cómo se hace el cálculo?";
 }
 
+function mostrarEasterEgg(TtargetC, TenvC) {
+  const cont = document.getElementById("resultado");
+  const existe = cont.querySelector(".easter");
+  const unidad = currentUnit;
+  const ceroAbs = convertirDesdeC(ZERO_ABSOLUTO_C, unidad);
+  const etiquetaUnidad = unidad.toUpperCase();
+  if (TtargetC <= ZERO_ABSOLUTO_C || TenvC <= ZERO_ABSOLUTO_C) {
+    if (!existe) {
+      cont.insertAdjacentHTML(
+        "beforeend",
+        `<p class="easter">¿Querés la cerveza más fría del universo? Tiempo infinito: no se puede bajar de 0 absoluto (${ceroAbs.toFixed(2)} °${etiquetaUnidad}).</p>`
+      );
+    }
+  } else if (existe) {
+    existe.remove();
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   poblarSelectTipoEnvase();
   poblarSelectVolumen();
@@ -530,6 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("envase-volumen").addEventListener("change", manejarCambioVolumen);
   document.getElementById("temp-sugerida").addEventListener("change", manejarCambioEntorno);
   document.getElementById("temp-objetivo-preset").addEventListener("change", manejarCambioObjetivo);
+  document.querySelectorAll('input[name="unidad"]').forEach(el => el.addEventListener("change", manejarCambioUnidad));
   document.getElementById("toggle-explicacion").addEventListener("click", toggleExplicacion);
   document.getElementById("timer-start").addEventListener("click", () => {
     iniciarTimer();

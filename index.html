@@ -26,6 +26,15 @@
         </div>
 
         <form id="calc-form" class="grid">
+          <div class="field units-field">
+            <span class="label">Unidades</span>
+            <div class="unit-toggle" role="group" aria-label="Selecciona unidades">
+              <label><input type="radio" name="unidad" value="c" checked> °C</label>
+              <label><input type="radio" name="unidad" value="f"> °F</label>
+              <label><input type="radio" name="unidad" value="k"> K</label>
+            </div>
+          </div>
+
           <label class="field">
             <span class="label">Tipo de envase</span>
             <select id="envase-tipo" name="envase-tipo" required></select>
