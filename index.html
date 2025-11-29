@@ -52,7 +52,7 @@
 
           <label class="field">
             <span class="label">Servilleta mojada</span>
-            <select id="servilleta" name="servilleta" required>
+            <select id="servilleta" name="servilleta" class="compact-select" required>
               <option value="no" selected>No</option>
               <option value="si">Sí</option>
             </select>
@@ -61,13 +61,13 @@
 
           <label class="field">
             <span class="label">Temperatura inicial (T₀, °C)</span>
-            <input type="number" id="temp-inicial" name="temp-inicial" step="0.1" placeholder="Ej: 22" required>
+            <input type="number" class="compact-number" id="temp-inicial" name="temp-inicial" step="0.1" placeholder="Ej: 22" required>
           </label>
 
           <label class="field">
             <span class="label">Temperatura objetivo (T<sub>obj</sub>, °C)</span>
             <select id="temp-objetivo-preset" name="temp-objetivo-preset"></select>
-            <input type="number" id="temp-objetivo" name="temp-objetivo" step="0.1" required>
+            <input type="number" class="compact-number" id="temp-objetivo" name="temp-objetivo" step="0.1" required>
           </label>
 
           <div class="field temp-wrap">
@@ -77,7 +77,7 @@
             </div>
             <div class="temp-controls">
               <select id="temp-sugerida" name="temp-sugerida"></select>
-              <input type="number" id="temp-entorno" name="temp-entorno" step="0.1" required>
+              <input type="number" class="compact-number" id="temp-entorno" name="temp-entorno" step="0.1" required>
             </div>
           </div>
 
@@ -116,7 +116,7 @@
         <div class="timer-input-wrap">
           <label class="field">
             <span class="label">Ajustar tiempo (minutos)</span>
-            <input type="number" id="timer-minutos" min="0" step="0.1" value="0">
+            <input type="number" class="compact-number" id="timer-minutos" min="0" step="0.1" value="0">
           </label>
         </div>
         <div class="notif-wrap">

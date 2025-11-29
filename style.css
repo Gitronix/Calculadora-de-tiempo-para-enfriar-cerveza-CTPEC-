@@ -105,7 +105,7 @@ h2 {
 .grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   align-items: end;
 }
 
@@ -155,7 +155,7 @@ h2 {
 input,
 select {
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #fffdf8;
@@ -175,6 +175,14 @@ input::placeholder {
   color: #9a8f8a;
 }
 
+.compact-number {
+  width: min(140px, 100%);
+}
+
+.compact-select {
+  width: min(160px, 100%);
+}
+
 .servilleta-note {
   margin: 0;
   font-size: 0.9rem;
@@ -188,7 +196,7 @@ input::placeholder {
 
 .temp-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.3fr 1fr;
   gap: 8px;
 }
 
@@ -464,5 +472,10 @@ input::placeholder {
 
   .temp-controls {
     grid-template-columns: 1fr;
+  }
+
+  .compact-number,
+  .compact-select {
+    width: 100%;
   }
 }
