@@ -60,6 +60,7 @@ const FACTOR_SERVILLETA = {
 
 const ZERO_ABSOLUTO_C = -273.15;
 let currentUnit = "c";
+let swRegistration = null;
 
 function obtenerFactorVolumen(volumenMl) {
   if (!volumenMl || volumenMl <= 0) return 0;
@@ -366,6 +367,10 @@ function manejarSubmit(event) {
   renderChart(serie, datos);
 
   mostrarEasterEgg(datos.Ttarget, datos.Tenv);
+
+  if (!infinito) {
+    actualizarNotifStatus("Listo para avisar cuando termine. Activa notificaciones si quieres alerta del temporizador.");
+  }
 }
 
 function poblarSelectTipoEnvase() {
@@ -474,6 +479,42 @@ function manejarCambioUnidad() {
   manejarCambioObjetivo();
 }
 
+// --- Notificaciones y SW ---
+function actualizarNotifStatus(msg) {
+  const el = document.getElementById("notif-status");
+  if (el) el.textContent = msg || "";
+}
+
+function solicitarPermisoNotificaciones() {
+  if (!("Notification" in window)) {
+    actualizarNotifStatus("Notificaciones no soportadas en este navegador.");
+    return;
+  }
+  Notification.requestPermission().then(res => {
+    if (res === "granted") {
+      actualizarNotifStatus("Notificaciones habilitadas.");
+    } else if (res === "denied") {
+      actualizarNotifStatus("Notificaciones bloqueadas en el navegador.");
+    } else {
+      actualizarNotifStatus("Permiso pendiente. Puedes intentarlo de nuevo.");
+    }
+  });
+}
+
+function enviarNotificacion(mensaje) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  if (swRegistration && swRegistration.showNotification) {
+    swRegistration.showNotification("CTPEC", {
+      body: mensaje,
+      icon: "icons/icon-192.png",
+      badge: "icons/icon-192.png"
+    });
+  } else {
+    new Notification("CTPEC", { body: mensaje, icon: "icons/icon-192.png" });
+  }
+}
+
 function actualizarServilletaDisponibilidad(entornoId) {
   const select = document.getElementById("servilleta");
   const note = document.getElementById("servilleta-note");
@@ -541,6 +582,7 @@ function finalizarTimer() {
   reproducirSonido("audio-destape");
   setTimeout(() => reproducirSonido("audio-glup"), 600);
   renderMensajeTimer("¡Tu cerveza debería estar lista para tomar!");
+  enviarNotificacion("Tu cerveza debería estar lista para tomar.");
 }
 
 function renderMensajeTimer(msg) {
@@ -626,6 +668,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("temp-objetivo-preset").addEventListener("change", manejarCambioObjetivo);
   document.querySelectorAll('input[name="unidad"]').forEach(el => el.addEventListener("change", manejarCambioUnidad));
   document.getElementById("toggle-explicacion").addEventListener("click", toggleExplicacion);
+  document.getElementById("notif-enable").addEventListener("click", solicitarPermisoNotificaciones);
   document.getElementById("timer-start").addEventListener("click", () => {
     iniciarTimer();
     document.getElementById("timer-pause").textContent = "Pausar";
@@ -657,6 +700,13 @@ document.addEventListener("DOMContentLoaded", () => {
     <audio id="audio-glup" src="glup.mp3" preload="auto"></audio>
   `;
   document.body.appendChild(audiosContainer);
+
+  // Registrar Service Worker para PWA/instalable.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").then(reg => {
+      swRegistration = reg;
+    }).catch(() => {});
+  }
 
   const form = document.getElementById("calc-form");
   form.addEventListener("submit", manejarSubmit);

@@ -56,6 +56,12 @@ Además de mostrar el tiempo estimado, la interfaz dibuja la curva T(t) para vis
 
 - Puedes alternar entre °C, °F y K; los valores visibles y los presets se convierten al cambiar.
 - Si ingresas temperaturas iguales o inferiores al cero absoluto (-273,15 °C), verás un mensaje oculto de “¿Querés la cerveza más fría del universo?”.
+- El 0 absoluto se muestra según la unidad seleccionada y el tiempo estimado pasa a “Infinito” en ese caso.
+
+## PWA y notificaciones
+
+- La app incluye `manifest.json` y `sw.js` para que pueda instalarse como PWA en dispositivos móviles/desktop compatibles (usa HTTPS o modo “Add to home screen” según el navegador).
+- En la sección de temporizador hay un botón para habilitar notificaciones: al finalizar el temporizador enviará una notificación (si el navegador lo permite).
 
 ## Temporizador
 

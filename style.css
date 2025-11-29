@@ -393,6 +393,15 @@ input::placeholder {
   margin-top: 6px;
 }
 
+.notif-wrap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+
 .tips {
   margin-top: 20px;
   background: #fffdf8;
