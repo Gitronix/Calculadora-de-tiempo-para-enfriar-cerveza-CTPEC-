@@ -388,12 +388,29 @@ function manejarCambioEntorno() {
   if (entornoId && ENTORNOS[entornoId]) {
     input.value = ENTORNOS[entornoId].temp;
   }
+  actualizarServilletaDisponibilidad(entornoId);
 }
 
 function manejarCambioObjetivo() {
   const val = document.getElementById("temp-objetivo-preset").value;
   if (val !== "") {
     document.getElementById("temp-objetivo").value = val;
+  }
+}
+
+function actualizarServilletaDisponibilidad(entornoId) {
+  const select = document.getElementById("servilleta");
+  const note = document.getElementById("servilleta-note");
+  const esBalde = entornoId === "balde_hielo" || entornoId === "balde_hielo_sal";
+  if (esBalde) {
+    select.value = "no";
+    select.disabled = true;
+    select.title = "En balde no aplica servilleta mojada.";
+    if (note) note.textContent = "En balde con agua/hielo la servilleta mojada no aplica.";
+  } else {
+    select.disabled = false;
+    select.title = "";
+    if (note) note.textContent = "";
   }
 }
 

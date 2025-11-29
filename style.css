@@ -153,6 +153,13 @@ input::placeholder {
   color: #9a8f8a;
 }
 
+.servilleta-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-height: 18px;
+}
+
 .temp-wrap {
   gap: 8px;
 }
