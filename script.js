@@ -59,8 +59,53 @@ const FACTOR_SERVILLETA = {
 };
 
 const ZERO_ABSOLUTO_C = -273.15;
+const UMBRAL_HORAS = 60 * 60;
+const UMBRAL_DIAS = 24 * 60 * 60;
 let currentUnit = "c";
 let swRegistration = null;
+
+function descomponerTiempo(totalSegundos) {
+  const s = Math.max(0, Math.round(totalSegundos));
+  const dias = Math.floor(s / UMBRAL_DIAS);
+  const restoDias = s % UMBRAL_DIAS;
+  const horas = Math.floor(restoDias / 3600);
+  const restoHoras = restoDias % 3600;
+  const minutos = Math.floor(restoHoras / 60);
+  const segundos = restoHoras % 60;
+  return { dias, horas, minutos, segundos };
+}
+
+function elegirUnidadTiempo(totalSegundos) {
+  if (totalSegundos >= UMBRAL_DIAS) return "d";
+  if (totalSegundos >= UMBRAL_HORAS) return "h";
+  return "min";
+}
+
+function convertirSegundosAUnidad(segundos, unidad) {
+  if (unidad === "d") return segundos / UMBRAL_DIAS;
+  if (unidad === "h") return segundos / 3600;
+  return segundos / 60;
+}
+
+function formatearDuracionAdaptada(totalSegundos, unidadForzada) {
+  const unidadEje = unidadForzada || elegirUnidadTiempo(totalSegundos);
+  const valorUnidad = convertirSegundosAUnidad(totalSegundos, unidadEje);
+  const unidadEjeLabel = unidadEje === "d" ? "días" : unidadEje === "h" ? "horas" : "minutos";
+  const precision = valorUnidad >= 10 ? 1 : 2;
+  const principal = `${valorUnidad.toFixed(precision)} ${unidadEjeLabel}`;
+  const { dias, horas, minutos, segundos } = descomponerTiempo(totalSegundos);
+  let desglose = "";
+  if (unidadEje === "d") {
+    desglose = `${dias} d ${horas} h ${minutos} min`;
+  } else if (unidadEje === "h") {
+    const horasTotales = Math.floor(totalSegundos / 3600);
+    desglose = `${horasTotales} h ${minutos} min`;
+  } else {
+    const minutosTotales = Math.floor(totalSegundos / 60);
+    desglose = `${minutosTotales} min ${segundos} s`;
+  }
+  return { principal, desglose, unidadEje, unidadEjeLabel };
+}
 
 function obtenerFactorVolumen(volumenMl) {
   if (!volumenMl || volumenMl <= 0) return 0;
@@ -104,15 +149,9 @@ function calcularTiempo(T0, Ttarget, Tenv, k) {
   const tSeconds = (1 / k) * Math.log(ratio);
   if (!Number.isFinite(tSeconds) || tSeconds < 0) return null;
 
-  const totalMinutes = tSeconds / 60;
-  const minutesRounded = Math.round(totalMinutes * 10) / 10;
-  const wholeMinutes = Math.floor(tSeconds / 60);
-  const seconds = Math.round(tSeconds % 60);
-
   return {
     tSeconds,
-    minutesRounded,
-    pretty: `${wholeMinutes} minutos ${seconds} segundos`
+    tiempoFormateado: formatearDuracionAdaptada(tSeconds)
   };
 }
 
@@ -145,6 +184,8 @@ function renderChart(puntos, datos) {
   const minTemp = Math.min(...temps, datos.Tenv, datos.Ttarget);
   const maxTemp = Math.max(...temps, datos.T0);
   const rango = Math.max(1, maxTemp - minTemp);
+  const totalSegundos = puntos[puntos.length - 1].t;
+  const tiempoChart = formatearDuracionAdaptada(totalSegundos);
 
   const mapX = t => pad + (t / puntos[puntos.length - 1].t) * (width - pad * 2);
   const mapY = temp => pad + (1 - (temp - minTemp) / rango) * (height - pad * 2);
@@ -174,7 +215,7 @@ function renderChart(puntos, datos) {
       <path class="chart-line" d="${path}"></path>
       <circle cx="${mapX(0).toFixed(2)}" cy="${mapY(puntos[0].temp).toFixed(2)}" r="4" fill="#d18c1d"></circle>
       <circle cx="${mapX(puntos[puntos.length - 1].t).toFixed(2)}" cy="${mapY(puntos[puntos.length - 1].temp).toFixed(2)}" r="4" fill="#3c5d42"></circle>
-      <text x="${width - pad}" y="${height - pad + 14}" text-anchor="end" fill="#6f645f" font-size="10">Tiempo (s)</text>
+      <text x="${width - pad}" y="${height - pad + 14}" text-anchor="end" fill="#6f645f" font-size="10">Tiempo (${tiempoChart.unidadEjeLabel})</text>
       <text x="${pad - 8}" y="${pad}" text-anchor="end" fill="#6f645f" font-size="10">Temp (°C)</text>
     </svg>
     <div class="chart-meta">
@@ -232,7 +273,7 @@ function renderChart(puntos, datos) {
     tooltip.style.left = `${vx / scaleX}px`;
     tooltip.style.top = `${vy / scaleY}px`;
     tooltip.style.opacity = 1;
-    tooltip.textContent = `t=${Math.round(p.t)} s · ${p.temp.toFixed(1)} °C`;
+    tooltip.textContent = `t=${formatearDuracionAdaptada(p.t, tiempoChart.unidadEje).desglose} · ${p.temp.toFixed(1)} °C`;
     marker.style.display = "block";
     marker.setAttribute("cx", vx.toFixed(2));
     marker.setAttribute("cy", vy.toFixed(2));
@@ -247,10 +288,11 @@ function renderChart(puntos, datos) {
   svg.addEventListener("mouseleave", onLeave);
 }
 
-function renderResultado({ minutesRounded, pretty, escenario, infinito }) {
+function renderResultado({ tiempoFormateado, escenario, infinito }) {
   const contenedor = document.getElementById("resultado");
   contenedor.classList.remove("error");
-  const tiempoTexto = infinito ? "Infinito" : `${minutesRounded.toFixed(1)} minutos (${pretty})`;
+  const formato = tiempoFormateado ?? formatearDuracionAdaptada(0);
+  const tiempoTexto = infinito ? "Infinito" : `${formato.principal} (${formato.desglose})`;
   contenedor.innerHTML = `
     <p><strong>Tiempo estimado:</strong> ${tiempoTexto}.</p>
     <p><strong>Escenario:</strong> ${escenario.envase}; Volumen: ${escenario.volumen} ml; Servilleta: ${escenario.servilleta ? "Sí" : "No"}.</p>
@@ -346,6 +388,7 @@ function manejarSubmit(event) {
     return;
   }
 
+  const esInfinito = datos.Ttarget <= ZERO_ABSOLUTO_C || datos.Tenv <= ZERO_ABSOLUTO_C;
   renderResultado({
     ...resultado,
     escenario: {
@@ -356,7 +399,7 @@ function manejarSubmit(event) {
       Ttarget: datos.Ttarget,
       Tenv: datos.Tenv
     },
-    infinito: datos.Ttarget <= ZERO_ABSOLUTO_C || datos.Tenv <= ZERO_ABSOLUTO_C
+    infinito: esInfinito
   });
 
   // Alimentamos el temporizador con el tiempo calculado (segundos).
@@ -368,7 +411,7 @@ function manejarSubmit(event) {
 
   mostrarEasterEgg(datos.Ttarget, datos.Tenv);
 
-  if (!infinito) {
+  if (!esInfinito) {
     actualizarNotifStatus("Listo para avisar cuando termine. Activa notificaciones si quieres alerta del temporizador.");
   }
 }
@@ -538,9 +581,19 @@ let timerRestanteSeg = 0;
 
 function formatearSegundos(seg) {
   const s = Math.max(0, Math.round(seg));
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  return `${String(m).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+  if (s >= UMBRAL_DIAS) {
+    const { dias, horas, minutos, segundos } = descomponerTiempo(s);
+    return `${dias}d ${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+  }
+  if (s >= UMBRAL_HORAS) {
+    const horas = Math.floor(s / 3600);
+    const minutos = Math.floor((s % 3600) / 60);
+    const segundos = s % 60;
+    return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+  }
+  const minutos = Math.floor(s / 60);
+  const segundos = s % 60;
+  return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
 }
 
 function actualizarDisplayTimer() {
